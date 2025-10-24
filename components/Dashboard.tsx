@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import type { LightingData } from '../types';
 import { AnalyticsPanel } from './AnalyticsPanel';
@@ -43,7 +42,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ data }) => {
     <>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-1/2 -translate-y-1/2 right-0 z-20 glassmorphism p-2 rounded-l-md transition-transform duration-300"
+        className="fixed top-1/2 -translate-y-1/2 right-0 z-20 glassmorphism p-2 rounded-l-md transition-transform duration-300 hover:scale-110"
         style={{ transform: `translateX(${isOpen ? '-384px' : '0px'}) translate(-50%,-50%) rotate(180deg)` }}
       >
         <Icon name="chevron" className={`w-6 h-6 text-cyan-300 transform transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -59,7 +58,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ data }) => {
               <button
                 key={tab.name}
                 onClick={() => setActiveTab(tab.name)}
-                className={`p-2 rounded-md transition-colors w-full flex flex-col items-center ${activeTab === tab.name ? 'bg-cyan-500/20' : 'hover:bg-cyan-500/10'}`}
+                className={`p-2 rounded-md transition-all duration-300 transform hover:scale-110 w-full flex flex-col items-center ${activeTab === tab.name ? 'bg-cyan-500/20' : 'hover:bg-cyan-500/10'}`}
               >
                 <Icon name={tab.icon} className={`w-6 h-6 mb-1 ${activeTab === tab.name ? 'text-cyan-300' : 'text-gray-400'}`} />
                 <span className={`font-retro text-xs ${activeTab === tab.name ? 'text-cyan-300' : 'text-gray-400'}`}>{tab.name}</span>

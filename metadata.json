@@ -1,5 +1,5 @@
 {
-  "name": "Copy of AI Smart Streetlight Simulator",
+  "name": "AI Smart Streetlight Simulator",
   "description": "An interactive WebGL-based 3D simulation of a machine learning-driven Smart Street Lighting System. It dynamically adjusts streetlight brightness based on real-time traffic density, weather conditions, and city size, mimicking an XGBoost prediction model.",
   "requestFramePermissions": []
 }

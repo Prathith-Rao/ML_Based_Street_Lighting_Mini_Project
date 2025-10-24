@@ -18,7 +18,8 @@ export const Environment: React.FC<EnvironmentProps> = ({ weatherSeverity, time 
     scene.fog = new THREE.FogExp2(fogColor, fogDensity);
 
     // Sky
-    const sunPosition = [
+    // Fix: Explicitly type sunPosition as a tuple to match the prop type required by the <Sky> component.
+    const sunPosition: [number, number, number] = [
         Math.cos((time / 24) * 2 * Math.PI) * 100,
         Math.sin((time / 24) * 2 * Math.PI) * 100,
         -50

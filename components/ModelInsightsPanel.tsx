@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { LightingData } from '../types';
 
@@ -21,6 +20,15 @@ const MetricDisplay: React.FC<{ label: string; value: string | number }> = ({ la
     </div>
 );
 
+const CostItem: React.FC<{ label: string; value: string; subtext?: string }> = ({ label, value, subtext }) => (
+    <div className="flex justify-between items-baseline">
+        <h4 className="font-retro text-cyan-300 text-sm">{label}</h4>
+        <div className="text-right">
+            <p className="font-retro text-lg text-magenta-400">{value}</p>
+            {subtext && <p className="text-xs text-gray-500 font-modern">{subtext}</p>}
+        </div>
+    </div>
+);
 
 export const ModelInsightsPanel: React.FC<{ data: LightingData }> = ({ data }) => {
   return (
@@ -45,6 +53,32 @@ export const ModelInsightsPanel: React.FC<{ data: LightingData }> = ({ data }) =
         <p className="text-sm text-gray-400 font-modern">
             Residuals (prediction errors) are minimal and randomly distributed around zero, indicating a well-fitted model with no systematic bias. The model accurately predicts lighting needs across various conditions.
         </p>
+      </div>
+      <div>
+        <h3 className="font-retro text-lg text-glow-amber text-amber-300 mb-3">IMPLEMENTATION ANALYSIS</h3>
+        <div className="glassmorphism p-4 rounded-md border border-cyan-500/10 space-y-4">
+            <div>
+                <h4 className="font-retro text-md text-cyan-300 mb-2 border-b border-cyan-500/20 pb-1">ESTIMATED TIMELINE (SMALL CITY)</h4>
+                <ul className="text-sm text-gray-300 font-modern space-y-1 pl-2">
+                    <li><strong className="text-amber-300">Phase 1 (1-2 Months):</strong> Planning & Survey</li>
+                    <li><strong className="text-amber-300">Phase 2 (3-4 Months):</strong> Pilot Program</li>
+                    <li><strong className="text-amber-300">Phase 3 (6-9 Months):</strong> Full Rollout</li>
+                    <li><strong className="text-amber-300">Phase 4 (1 Month):</strong> Optimization & Handover</li>
+                </ul>
+            </div>
+            <div>
+                <h4 className="font-retro text-md text-cyan-300 mb-2 border-b border-cyan-500/20 pb-1">COST ANALYSIS (EST. 1,000 LIGHTS)</h4>
+                <div className="space-y-3 mt-2">
+                    <CostItem label="Hardware (Smart Nodes)" value="$350,000" subtext="~$350 / unit" />
+                    <CostItem label="Installation & Labor" value="$150,000" subtext="~$150 / unit" />
+                    <CostItem label="Network & Platform Fee" value="$50,000" subtext="Annual" />
+                    <div className="border-t border-cyan-500/20 my-2"></div>
+                    <CostItem label="Total Initial Cost" value="~$550,000" />
+                    <CostItem label="Est. Annual Savings" value="~$90,000" />
+                    <CostItem label="Return on Investment" value="~6 Years" />
+                </div>
+            </div>
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Scene } from './simulation/Scene';
@@ -53,9 +52,9 @@ const App: React.FC = () => {
       <LoadingOverlay isVisible={isTraining} />
 
       <div className="absolute top-4 right-4 md:right-auto md:left-4 z-20 flex space-x-2">
-         <button onClick={() => setShowInfo(true)} className="glassmorphism text-cyan-300 font-retro px-3 py-2 rounded-md hover:bg-cyan-500/20 transition-colors border border-cyan-500/30">INFO</button>
-        <button onClick={() => setCameraView('street')} className={`glassmorphism text-cyan-300 font-retro px-3 py-2 rounded-md hover:bg-cyan-500/20 transition-colors border border-cyan-500/30 ${cameraView === 'street' ? 'bg-cyan-500/30' : ''}`}>STREET</button>
-        <button onClick={() => setCameraView('aerial')} className={`glassmorphism text-cyan-300 font-retro px-3 py-2 rounded-md hover:bg-cyan-500/20 transition-colors border border-cyan-500/30 ${cameraView === 'aerial' ? 'bg-cyan-500/30' : ''}`}>AERIAL</button>
+         <button onClick={() => setShowInfo(true)} className="glassmorphism text-cyan-300 font-retro px-3 py-2 rounded-md hover:bg-cyan-500/20 transition-all duration-300 transform hover:scale-110 border border-cyan-500/30">INFO</button>
+        <button onClick={() => setCameraView('street')} className={`glassmorphism text-cyan-300 font-retro px-3 py-2 rounded-md hover:bg-cyan-500/20 transition-all duration-300 transform hover:scale-110 border border-cyan-500/30 ${cameraView === 'street' ? 'bg-cyan-500/30' : ''}`}>STREET</button>
+        <button onClick={() => setCameraView('aerial')} className={`glassmorphism text-cyan-300 font-retro px-3 py-2 rounded-md hover:bg-cyan-500/20 transition-all duration-300 transform hover:scale-110 border border-cyan-500/30 ${cameraView === 'aerial' ? 'bg-cyan-500/30' : ''}`}>AERIAL</button>
       </div>
       
       <Dashboard data={lightingData} />
