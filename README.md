@@ -1,4 +1,4 @@
-<img src="images/screenshot.png" alt="App Screenshot" width="400">
+<img src="images/screenshot.png" alt="App Screenshot" width="1000">
 
 # Run and deploy your app
 
