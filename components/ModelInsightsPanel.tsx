@@ -55,6 +55,41 @@ export const ModelInsightsPanel: React.FC<{ data: LightingData }> = ({ data }) =
         </p>
       </div>
       <div>
+        <h3 className="font-retro text-lg text-glow-amber text-amber-300 mb-3">YEARLY PROJECTIONS</h3>
+        <div className="glassmorphism p-4 rounded-md border border-cyan-500/10 space-y-3">
+            <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-3 bg-gradient-to-br from-cyan-500/10 to-transparent rounded-md border border-cyan-500/20">
+                    <p className="text-xs text-cyan-300 font-retro mb-1">Annual Energy Saved</p>
+                    <p className="text-2xl font-bold text-cyan-400">{data.yearlyProjections.energySaved.toFixed(0)}</p>
+                    <p className="text-xs text-gray-400 font-modern">kWh/year</p>
+                </div>
+                <div className="text-center p-3 bg-gradient-to-br from-amber-500/10 to-transparent rounded-md border border-amber-500/20">
+                    <p className="text-xs text-amber-300 font-retro mb-1">Annual Cost Saved</p>
+                    <p className="text-2xl font-bold text-amber-400">${data.yearlyProjections.costSaved.toFixed(0)}</p>
+                    <p className="text-xs text-gray-400 font-modern">USD/year</p>
+                </div>
+                <div className="text-center p-3 bg-gradient-to-br from-green-500/10 to-transparent rounded-md border border-green-500/20">
+                    <p className="text-xs text-green-300 font-retro mb-1">Annual CO₂ Reduced</p>
+                    <p className="text-2xl font-bold text-green-400">{data.yearlyProjections.co2Reduced.toFixed(0)}</p>
+                    <p className="text-xs text-gray-400 font-modern">kg CO₂/year</p>
+                </div>
+                <div className="text-center p-3 bg-gradient-to-br from-magenta-500/10 to-transparent rounded-md border border-magenta-500/20">
+                    <p className="text-xs text-magenta-300 font-retro mb-1">Load Decrease</p>
+                    <p className="text-2xl font-bold text-magenta-400">{data.yearlyProjections.loadDecrease.toFixed(1)}%</p>
+                    <p className="text-xs text-gray-400 font-modern">vs conventional</p>
+                </div>
+            </div>
+            <div className="text-xs text-gray-400 font-modern pt-2 border-t border-cyan-500/10">
+                <p>Projected environmental impact equivalent to:</p>
+                <ul className="list-disc pl-5 mt-1 space-y-1">
+                    <li>{(data.yearlyProjections.co2Reduced / 411).toFixed(0)} trees planted annually</li>
+                    <li>{(data.yearlyProjections.co2Reduced / 4600).toFixed(1)} cars off the road per year</li>
+                    <li>{(data.yearlyProjections.energySaved / 877).toFixed(0)} homes powered for a month</li>
+                </ul>
+            </div>
+        </div>
+      </div>
+      <div>
         <h3 className="font-retro text-lg text-glow-amber text-amber-300 mb-3">IMPLEMENTATION ANALYSIS</h3>
         <div className="glassmorphism p-4 rounded-md border border-cyan-500/10 space-y-4">
             <div>
