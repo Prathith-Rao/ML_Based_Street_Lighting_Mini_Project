@@ -1,4 +1,4 @@
-import { generateTrainingData, preprocessFeatures, type StreetlightTrainingData } from './trainingData';
+import { generateTrainingData, preprocessFeatures, type StreetlightTrainingData, type PredictionInput } from './trainingData';
 
 interface DecisionTree {
   featureIndex: number;
@@ -181,12 +181,18 @@ export class StreetlightXGBoostModel {
     humidity?: number;
     visibility?: number;
   }): number {
+    // Enforce daytime rule: lights should be completely off during daytime (7 AM to 6 PM)
+    const isDaytime = input.timeOfDay > 7 && input.timeOfDay < 18;
+    if (isDaytime) {
+      return 0;
+    }
+
     if (!this.isReady || this.trees.length === 0) {
       return this.fallbackPrediction(input);
     }
 
     try {
-      const features = preprocessFeatures({
+      const predictionInput: PredictionInput = {
         timeOfDay: input.timeOfDay,
         trafficDensity: input.trafficDensity,
         weatherSeverity: input.weatherSeverity,
@@ -195,7 +201,9 @@ export class StreetlightXGBoostModel {
         temperature: input.temperature || 20,
         humidity: input.humidity || 60,
         visibility: input.visibility || 500
-      });
+      };
+
+      const features = preprocessFeatures(predictionInput);
 
       let prediction = 0;
       for (const tree of this.trees) {
@@ -214,7 +222,8 @@ export class StreetlightXGBoostModel {
     trafficDensity: number;
     weatherSeverity: number;
   }): number {
-    const isDaytime = input.timeOfDay >= 6 && input.timeOfDay < 19;
+    // Use consistent daytime hours: lights off from 7 AM to 6 PM
+    const isDaytime = input.timeOfDay > 7 && input.timeOfDay < 18;
 
     if (isDaytime) {
       return 0;

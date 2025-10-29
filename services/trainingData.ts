@@ -111,7 +111,18 @@ export const generateTrainingData = (): StreetlightTrainingData[] => {
   return data;
 };
 
-export const preprocessFeatures = (data: StreetlightTrainingData): number[] => {
+export interface PredictionInput {
+  timeOfDay: number;
+  trafficDensity: number;
+  weatherSeverity: number;
+  pedestrianCount: number;
+  ambientLight: number;
+  temperature: number;
+  humidity: number;
+  visibility: number;
+}
+
+export const preprocessFeatures = (data: StreetlightTrainingData | PredictionInput): number[] => {
   return [
     data.timeOfDay / 24,
     data.trafficDensity / 100,

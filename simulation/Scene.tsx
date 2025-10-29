@@ -1,6 +1,6 @@
 // Fix: Added a triple-slash directive to provide type definitions for react-three-fiber's JSX elements.
 /// <reference types="@react-three/fiber" />
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import { PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
