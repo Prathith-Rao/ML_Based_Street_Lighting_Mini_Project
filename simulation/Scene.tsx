@@ -51,7 +51,7 @@ export const Scene: React.FC<SceneProps> = ({ brightness, trafficCount, weatherS
       <ambientLight intensity={0.1} color="#4a6a8b" />
       <directionalLight 
         position={[10, 30, 20]} 
-        intensity={time > 6 && time < 19 ? 0.3 : 0.8}
+        intensity={time > 6 && time < 19 ? 0.0 : 0.8}
         color={time > 6 && time < 19 ? '#ffffff' : '#87CEEB'}
         castShadow
         shadow-mapSize-width={2048}
