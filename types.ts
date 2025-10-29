@@ -21,4 +21,12 @@ export interface LightingData {
     weather: number;
     timeOfDay: number;
   };
+  hourlyBrightness: number[];
+  hourlyConsumption: number[];
+  yearlyProjections: {
+    energySaved: number;
+    costSaved: number;
+    co2Reduced: number;
+    loadDecrease: number;
+  };
 }

@@ -1,78 +1,107 @@
 
 import { useMemo } from 'react';
 import type { CitySize, SimulationParams, LightingData } from '../types';
+import { streetlightModel } from '../services/xgboostModel';
+import { getTrafficForHour } from '../services/trainingData';
 
-const CITY_FACTORS: Record<CitySize, { base: number; traffic: number; weather: number }> = {
-  Small: { base: 1.0, traffic: 0.45, weather: 0.25 },
-  Medium: { base: 1.1, traffic: 0.5, weather: 0.3 },
-  Large: { base: 1.2, traffic: 0.55, weather: 0.35 },
+const CITY_FACTORS: Record<CitySize, { base: number; traffic: number; weather: number; pedestrian: number; trafficMultiplier: number }> = {
+  Small: { base: 1.0, traffic: 0.45, weather: 0.25, pedestrian: 0.8, trafficMultiplier: 0.7 },
+  Medium: { base: 1.1, traffic: 0.5, weather: 0.3, pedestrian: 1.0, trafficMultiplier: 1.0 },
+  Large: { base: 1.2, traffic: 0.55, weather: 0.35, pedestrian: 1.3, trafficMultiplier: 1.3 },
 };
 
-const ENERGY_PER_LIGHT_HOUR = 0.15; // kWh for a standard LED streetlight at full brightness
-const COST_PER_KWH = 0.12; // dollars
-const C02_KG_PER_KWH = 0.4; // kg
-const TOTAL_LIGHTS = 50; // In the simulated area
+const ENERGY_PER_LIGHT_HOUR = 0.15;
+const COST_PER_KWH = 0.12;
+const C02_KG_PER_KWH = 0.4;
+const TOTAL_LIGHTS = 50;
 
 export const useSmartLighting = (params: SimulationParams): LightingData => {
   const { traffic, weather, city, time } = params;
 
   const lightingData = useMemo(() => {
-    // --- ML Model Simulation ---
-    const isDay = time > 6 && time < 19;
-    
-    if (isDay) {
-        return {
-            predictedBrightness: 0,
-            energySaved: TOTAL_LIGHTS * ENERGY_PER_LIGHT_HOUR * 24 * 0.95, // Approximate daily savings
-            smartEnergyConsumed: 0,
-            costSaved: TOTAL_LIGHTS * ENERGY_PER_LIGHT_HOUR * 24 * 0.95 * COST_PER_KWH,
-            co2Reduced: TOTAL_LIGHTS * ENERGY_PER_LIGHT_HOUR * 24 * 0.95 * C02_KG_PER_KWH,
-            modelR2: 0.98,
-            predictionAccuracy: 99.5,
-            featureImportance: { traffic: 55, weather: 35, timeOfDay: 10 },
-        };
-    }
-
-    const timeFactor = 1 - Math.abs(time - 24) / 12; // Peak brightness around midnight
-    const baseBrightness = 0.1 * timeFactor;
-
-    const trafficFactor = traffic / 100;
-    const weatherFactor = weather / 100;
-
     const cityFactors = CITY_FACTORS[city];
 
-    let brightness = baseBrightness +
-      (trafficFactor * cityFactors.traffic) +
-      (weatherFactor * cityFactors.weather);
+    const currentHourTraffic = getTrafficForHour(time, cityFactors.trafficMultiplier);
+    const adjustedTraffic = currentHourTraffic * (traffic / 50);
+    const pedestrianCount = adjustedTraffic * 0.6 * cityFactors.pedestrian;
 
-    brightness = Math.max(0.05, Math.min(1.0, brightness)); // Clamp brightness
+    const isDaytime = time >= 6 && time < 19;
+    const isEarlyMorning = time >= 5 && time < 7;
+    const isDusk = time >= 18 && time < 20;
+    const ambientLight = isDaytime ? 800 : (isEarlyMorning || isDusk ? 150 : 10);
 
-    // --- Analytics Calculation ---
-    const dailyHours = 24;
-    const conventionalEnergy = TOTAL_LIGHTS * ENERGY_PER_LIGHT_HOUR * dailyHours;
-    const smartEnergy = TOTAL_LIGHTS * (ENERGY_PER_LIGHT_HOUR * brightness) * dailyHours;
+    const brightness = streetlightModel.predict({
+      timeOfDay: time,
+      trafficDensity: adjustedTraffic,
+      weatherSeverity: weather,
+      pedestrianCount,
+      ambientLight,
+      temperature: 20,
+      humidity: 60,
+      visibility: weather > 70 ? 200 : 600
+    });
 
-    const energySaved = conventionalEnergy - smartEnergy;
+    const hourlyBrightness: number[] = [];
+    const hourlyConsumption: number[] = [];
+
+    for (let hour = 0; hour < 24; hour++) {
+      const hourIsDaytime = hour >= 6 && hour < 19;
+      const hourIsEarlyMorning = hour >= 5 && hour < 7;
+      const hourIsDusk = hour >= 18 && hour < 20;
+      const hourAmbientLight = hourIsDaytime ? 800 : (hourIsEarlyMorning || hourIsDusk ? 150 : 10);
+
+      const baseHourTraffic = getTrafficForHour(hour, cityFactors.trafficMultiplier);
+      const hourTraffic = baseHourTraffic * (traffic / 50);
+      const hourPedestrianCount = hourTraffic * 0.6 * cityFactors.pedestrian;
+
+      const hourBrightness = streetlightModel.predict({
+        timeOfDay: hour,
+        trafficDensity: hourTraffic,
+        weatherSeverity: weather,
+        pedestrianCount: hourPedestrianCount,
+        ambientLight: hourAmbientLight,
+        temperature: 20,
+        humidity: 60,
+        visibility: weather > 70 ? 200 : 600
+      });
+
+      hourlyBrightness.push(hourBrightness);
+      hourlyConsumption.push(TOTAL_LIGHTS * ENERGY_PER_LIGHT_HOUR * hourBrightness);
+    }
+
+    const dailySmartEnergy = hourlyConsumption.reduce((sum, val) => sum + val, 0);
+    const dailyConventionalEnergy = TOTAL_LIGHTS * ENERGY_PER_LIGHT_HOUR * 12;
+    const dailyEnergySaved = dailyConventionalEnergy - dailySmartEnergy;
+
+    const energySaved = dailyEnergySaved;
     const costSaved = energySaved * COST_PER_KWH;
     const co2Reduced = energySaved * C02_KG_PER_KWH;
 
-    // Simulated model performance metrics
-    const modelR2 = 0.97 + (Math.random() * 0.02);
-    const predictionAccuracy = 99.4 + (Math.random() * 0.2);
+    const yearlyEnergySaved = dailyEnergySaved * 365;
+    const yearlyCostSaved = yearlyEnergySaved * COST_PER_KWH;
+    const yearlyCo2Reduced = yearlyEnergySaved * C02_KG_PER_KWH;
+    const loadDecrease = ((dailyConventionalEnergy - dailySmartEnergy) / dailyConventionalEnergy) * 100;
+
+    const metrics = streetlightModel.getModelMetrics();
+    const featureImportance = streetlightModel.getFeatureImportance();
 
     return {
       predictedBrightness: brightness,
-      energySaved: energySaved / 10,
-      smartEnergyConsumed: smartEnergy / 10,
-      costSaved: costSaved / 10,
-      co2Reduced: co2Reduced / 10,
-      modelR2: parseFloat(modelR2.toFixed(3)),
-      predictionAccuracy: parseFloat(predictionAccuracy.toFixed(2)),
-      featureImportance: {
-        traffic: cityFactors.traffic * 100,
-        weather: cityFactors.weather * 100,
-        timeOfDay: 100 - (cityFactors.traffic * 100 + cityFactors.weather * 100)
-      },
+      energySaved,
+      smartEnergyConsumed: dailySmartEnergy,
+      costSaved,
+      co2Reduced,
+      modelR2: metrics.r2Score,
+      predictionAccuracy: metrics.accuracy,
+      featureImportance,
+      hourlyBrightness,
+      hourlyConsumption,
+      yearlyProjections: {
+        energySaved: yearlyEnergySaved,
+        costSaved: yearlyCostSaved,
+        co2Reduced: yearlyCo2Reduced,
+        loadDecrease
+      }
     };
   }, [traffic, weather, city, time]);
 
