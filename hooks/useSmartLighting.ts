@@ -2,11 +2,12 @@
 import { useMemo } from 'react';
 import type { CitySize, SimulationParams, LightingData } from '../types';
 import { streetlightModel } from '../services/xgboostModel';
+import { getTrafficForHour } from '../services/trainingData';
 
-const CITY_FACTORS: Record<CitySize, { base: number; traffic: number; weather: number; pedestrian: number }> = {
-  Small: { base: 1.0, traffic: 0.45, weather: 0.25, pedestrian: 0.8 },
-  Medium: { base: 1.1, traffic: 0.5, weather: 0.3, pedestrian: 1.0 },
-  Large: { base: 1.2, traffic: 0.55, weather: 0.35, pedestrian: 1.3 },
+const CITY_FACTORS: Record<CitySize, { base: number; traffic: number; weather: number; pedestrian: number; trafficMultiplier: number }> = {
+  Small: { base: 1.0, traffic: 0.45, weather: 0.25, pedestrian: 0.8, trafficMultiplier: 0.7 },
+  Medium: { base: 1.1, traffic: 0.5, weather: 0.3, pedestrian: 1.0, trafficMultiplier: 1.0 },
+  Large: { base: 1.2, traffic: 0.55, weather: 0.35, pedestrian: 1.3, trafficMultiplier: 1.3 },
 };
 
 const ENERGY_PER_LIGHT_HOUR = 0.15;
@@ -19,13 +20,19 @@ export const useSmartLighting = (params: SimulationParams): LightingData => {
 
   const lightingData = useMemo(() => {
     const cityFactors = CITY_FACTORS[city];
-    const pedestrianCount = (traffic / 100) * 40 * cityFactors.pedestrian;
+
+    const currentHourTraffic = getTrafficForHour(time, cityFactors.trafficMultiplier);
+    const adjustedTraffic = currentHourTraffic * (traffic / 50);
+    const pedestrianCount = adjustedTraffic * 0.6 * cityFactors.pedestrian;
+
     const isDaytime = time >= 6 && time < 19;
-    const ambientLight = isDaytime ? 800 : 10;
+    const isEarlyMorning = time >= 5 && time < 7;
+    const isDusk = time >= 18 && time < 20;
+    const ambientLight = isDaytime ? 800 : (isEarlyMorning || isDusk ? 150 : 10);
 
     const brightness = streetlightModel.predict({
       timeOfDay: time,
-      trafficDensity: traffic,
+      trafficDensity: adjustedTraffic,
       weatherSeverity: weather,
       pedestrianCount,
       ambientLight,
@@ -39,17 +46,19 @@ export const useSmartLighting = (params: SimulationParams): LightingData => {
 
     for (let hour = 0; hour < 24; hour++) {
       const hourIsDaytime = hour >= 6 && hour < 19;
-      const hourAmbientLight = hourIsDaytime ? 800 : 10;
+      const hourIsEarlyMorning = hour >= 5 && hour < 7;
+      const hourIsDusk = hour >= 18 && hour < 20;
+      const hourAmbientLight = hourIsDaytime ? 800 : (hourIsEarlyMorning || hourIsDusk ? 150 : 10);
 
-      const hourTraffic = hourIsDaytime
-        ? ((hour >= 7 && hour <= 9) || (hour >= 17 && hour <= 19) ? 70 : 40)
-        : 15;
+      const baseHourTraffic = getTrafficForHour(hour, cityFactors.trafficMultiplier);
+      const hourTraffic = baseHourTraffic * (traffic / 50);
+      const hourPedestrianCount = hourTraffic * 0.6 * cityFactors.pedestrian;
 
       const hourBrightness = streetlightModel.predict({
         timeOfDay: hour,
         trafficDensity: hourTraffic,
         weatherSeverity: weather,
-        pedestrianCount: hourTraffic / 100 * 30,
+        pedestrianCount: hourPedestrianCount,
         ambientLight: hourAmbientLight,
         temperature: 20,
         humidity: 60,

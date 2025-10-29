@@ -29,7 +29,7 @@ export class StreetlightXGBoostModel {
       const X = trainingData.map(d => preprocessFeatures(d));
       const y = trainingData.map(d => d.targetBrightness);
 
-      this.trainGradientBoosting(X, y, 30, 0.1, 3);
+      this.trainGradientBoosting(X, y, 40, 0.12, 4);
       this.calculateFeatureImportance(trainingData);
 
       this.isReady = true;
